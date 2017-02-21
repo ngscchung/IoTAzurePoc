@@ -7,7 +7,7 @@ var documentClient = require("documentdb").DocumentClient;
 var client = new documentClient(config.endpoint, { "masterKey": config.primaryKey });
 
 var databaseUrl = "dbs/" + config.database.id;
-var collectionUrl = databaseUrl + "/colls/" + config.collection.id;
+var collectionUrl = databaseUrl + "/colls/" + config.facility_collection.id;
 
 function readFiles(dirname, onFileContent, onError) {
   fs.readdir(dirname, function(err, filenames) {
@@ -64,6 +64,16 @@ readFiles(dataPath, function(filename, content) {
     }
   };
   console.log(JSON.stringify(facilityGeo));
+  client.createDocument(collectionUrl, facilityGeo, (err, created) => {
+                        if (err) {
+                          throw err;
+                        }
+                        else {
+                          console.log("Document Created! " + facilityGeo.facilityCode);
+                        }
+                    });
+  
+
 }, function(err) {
   throw err;
 });
