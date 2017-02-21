@@ -24,8 +24,15 @@
 
      // Create a message and send it to the IoT Hub every second
      setInterval(function(){
-         var windSpeed = 10 + (Math.random() * 4);
-         var data = JSON.stringify({ deviceId: 'ngscFirstNodeDevice', windSpeed: windSpeed });
+        
+        var dataArray = []
+        for (var i = 0; i < 3; i++){
+            var windSpeed = 10 + (Math.random() * 4);
+            var data1 = { deviceId: 'ngscFirstNodeDevice', windSpeed: windSpeed, dataArray: true };
+            dataArray.push(data1);
+        }
+         //var data = JSON.stringify({ deviceId: 'ngscFirstNodeDevice', windSpeed: windSpeed });
+         var data = JSON.stringify(dataArray);
          var message = new Message(data);
          console.log("Sending message: " + message.getData());
          client.sendEvent(message, printResultFor('send'));
