@@ -2,6 +2,13 @@ var fs = require('fs');
 var gracefulFs = require('graceful-fs');
 gracefulFs.gracefulify(fs);
 
+var config = require("../azureKeys.js");
+var documentClient = require("documentdb").DocumentClient;
+var client = new documentClient(config.endpoint, { "masterKey": config.primaryKey });
+
+var databaseUrl = "dbs/" + config.database.id;
+var collectionUrl = databaseUrl + "/colls/" + config.collection.id;
+
 function readFiles(dirname, onFileContent, onError) {
   fs.readdir(dirname, function(err, filenames) {
     if (err) {
@@ -20,30 +27,43 @@ function readFiles(dirname, onFileContent, onError) {
   });
 }
 
+// var dataPath = 'D:/Desktop/GPS_DCD/Geofence/Geofence_data/';
+var dataPath = '/Users/User/Work/Geofence_data/';
+
 var data = {};
-readFiles('D:/Desktop/GPS_DCD/Geofence/Geofence_data/', function(filename, content) {
+readFiles(dataPath, function(filename, content) {
   data[filename] = content;
-  console.log(filename);
-  var locCode = filename.substring(0, filename.indexOf("."));
-  console.log(locCode);
-  console.log(content);
+  // console.log(filename);
+  var facilityCode = filename.substring(0, filename.indexOf("."));
+  // console.log(facilityCode);
+  // console.log(content);
   var polygon = content.split(";").filter(function(val){
       if(val.indexOf(":") < 0){
           return false;
         } 
         return true;
     }).map(function(val){
-        console.log(val); 
+        // console.log(val); 
         // return val;
 
         var pointArr = val.split(':').map(function(pointVal){
             return Number(pointVal);
+            // return pointVal;
         });
-        return pointArr;
+        return pointArr.reverse();
     }
   );
+
+  polygon.push(polygon[0]);
   
-//   console.log(points);
+  var facilityGeo = {
+    facilityCode: facilityCode,
+    location: {
+      type: "Polygon",
+      coordinates: polygon
+    }
+  };
+  console.log(JSON.stringify(facilityGeo));
 }, function(err) {
   throw err;
 });

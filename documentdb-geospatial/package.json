@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "documentdb": "^1.10.2",
     "graceful-fs": "^4.1.11"
   }
 }
