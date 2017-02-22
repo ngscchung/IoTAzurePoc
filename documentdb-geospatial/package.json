@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "documentdb": "^1.10.2",
+    "fs-extra-promise": "^0.4.1",
     "graceful-fs": "^4.1.11"
   }
 }

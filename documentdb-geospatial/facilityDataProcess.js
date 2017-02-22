@@ -1,13 +1,15 @@
 var fs = require('fs');
 var gracefulFs = require('graceful-fs');
 gracefulFs.gracefulify(fs);
+var bulkImport = require("./bulkImport.js");
 
-var config = require("../azureKeys.js");
-var documentClient = require("documentdb").DocumentClient;
-var client = new documentClient(config.endpoint, { "masterKey": config.primaryKey });
+// var config = require("../azureKeys.js");
+// var documentClient = require("documentdb").DocumentClient;
+// var client = new documentClient(config.endpoint, { "masterKey": config.primaryKey });
+// var databaseUrl = "dbs/" + config.database.id;
+// var collectionUrl = databaseUrl + "/colls/" + config.facility_collection.id;
 
-var databaseUrl = "dbs/" + config.database.id;
-var collectionUrl = databaseUrl + "/colls/" + config.facility_collection.id;
+var facilityGeoArr = [];
 
 function readFiles(dirname, onFileContent, onError) {
   fs.readdir(dirname, function(err, filenames) {
@@ -27,11 +29,7 @@ function readFiles(dirname, onFileContent, onError) {
   });
 }
 
-// var dataPath = 'D:/Desktop/GPS_DCD/Geofence/Geofence_data/';
-var dataPath = '/Users/User/Work/Geofence_data/';
-
-var data = {};
-readFiles(dataPath, function(filename, content) {
+function createFacilityGeo(filename, content) {
   data[filename] = content;
   // console.log(filename);
   var facilityCode = filename.substring(0, filename.indexOf("."));
@@ -63,17 +61,86 @@ readFiles(dataPath, function(filename, content) {
       coordinates: polygon
     }
   };
-  console.log(JSON.stringify(facilityGeo));
-  client.createDocument(collectionUrl, facilityGeo, (err, created) => {
-                        if (err) {
-                          throw err;
-                        }
-                        else {
-                          console.log("Document Created! " + facilityGeo.facilityCode);
-                        }
-                    });
-  
+  // console.log(JSON.stringify(facilityGeo));
+  // client.createDocument(collectionUrl, facilityGeo, (err, created) => {
+  //                       if (err) {
+  //                         throw err;
+  //                       }
+  //                       else {
+  //                         console.log("Document Created! " + facilityGeo.facilityCode);
+  //                       }
+  //                   });
+  facilityGeoArr.push(facilityGeo);
 
-}, function(err) {
-  throw err;
-});
+};
+
+var dataPath = 'D:/Desktop/GPS_DCD/Geofence/Geofence_data/';
+// var dataPath = '/Users/User/Work/Geofence_data/';
+
+var data = {};
+// readFiles(dataPath, createFacilityGeo, function(err) { throw err; });
+
+// console.log(facilityGeoArr.length);
+
+function readFilesSync(dirname){
+  var files = fs.readdirSync(dirname);
+  files.forEach(function(filename){
+    var content = fs.readFileSync(dirname + filename, 'utf-8');
+    createFacilityGeo(filename, content);
+  });
+};
+
+readFilesSync(dataPath);
+console.log(JSON.stringify(facilityGeoArr));
+
+fs.writeFileSync("./facilityGeo.json", JSON.stringify(facilityGeoArr));
+
+
+
+// // register the stored procedure
+// var createdStoredProcedure;
+// client.createStoredProcedure(collectionUrl, bulkImport, null, function(error, sporc){
+//   if(error){
+//     console.log("StoredProcedure creation failed...");
+//     console.log(error);
+//     throw error;
+//   }
+//   else{
+//     console.log("StoredProcedure created!!");
+//     console.log(sporc._self);
+//     createdStoredProcedure = sporc._self;
+//     client.executeStoredProcedure(createdStoredProcedure, facilityGeoArr, function(err, results, responseHeaders){
+//         console.log('//////////////////////////////////');
+//         if (err) {
+//           console.log('// err');
+//           console.log(err);
+//         }
+//         if (responseHeaders) {
+//           console.log('// responseHeaders');
+//           console.log(responseHeaders);
+//         }
+//         if (results) {
+//           console.log('// results');
+//           console.log(results);
+//         }
+//         console.log('//////////////////////////////////');
+//     });
+//   }
+// });
+
+
+    
+// facilityGeoArr.forEach(function(facilityGeo){
+//   client.createDocument(collectionUrl, facilityGeo, (err, created) => {
+//                         if (err) {
+//                           console.log(err);
+//                           throw err;
+//                         }
+//                         else {
+//                           console.log("Document Created! " + facilityGeo.facilityCode);
+//                         }
+//                     });
+// });
+
+
+
